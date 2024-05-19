@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt 
 from Spacery import *
 from Test1 import *
+import time as time_m
 
 class Decoherence(Walk):
 
@@ -65,9 +66,9 @@ if __name__=='__main__':
     th=np.pi/4
     x0=dim//2
     sigma=2
-    r=2
-    v=2
-    alpha=0.9
+    r=3
+    v=3
+    alpha=0.95
     pU=0.95
     n=[1,0,0]
 
@@ -80,7 +81,7 @@ if __name__=='__main__':
     Beta=Correlation(dim)
 
     Give=Walk.Give_Center(dim)
-    GiveC=Walk.Give_Coin(1,1j)
+    GiveC=Walk.Give_Coin(1,1)
     state=superket.two_kets(ket.from_given(Give),ket.from_given(GiveC))
 
     rho=DensityMat.from_state(state)
@@ -93,17 +94,59 @@ if __name__=='__main__':
     std=[]
     std.append(rho.std(prob))
 
-    time=300
+    time=100
 
     fig, ax = plt.subplots(2, 2, figsize=(10, 6))
 
+    st=time_m.time()
+    for k in range(time):
+            Distr_beta.append(Beta.Correlation(state)[0][0])
+            ft=Correlation.ft(np.array(Distr_beta))
+            Beta.make_step(U,Udag,K1,K2,pU)
+            rho.step(U,Udag,K1,K2,pU)
+            prob=rho.probability_walk()
+            std.append(rho.std(prob))
+            Distribution=np.concatenate((Distribution,np.array([prob])))
+    et=time_m.time()
+
+    print(f' execution time: {et-st}')
+
+    fig.suptitle(f'QRW: r={r}, v={v}, '+r'$\alpha$='+f'{alpha}, pU={pU}', fontsize=16)
+    fig.patch.set_facecolor('lightgrey')
+
+    cax = ax[0, 0].imshow(np.real(Distribution), cmap='viridis', aspect='auto', origin='lower')
+    ax[0, 0].set_xlabel('Position')
+    ax[0, 0].set_ylabel('Time step')
+    ax[0, 0].set_title('Probability distribution')
+    bar = plt.colorbar(cax, ax=ax[0, 0], label='Probability')
+
+    ax[0, 1].plot(range(dim), prob, marker='.')
+    ax[0, 1].set_xlabel('Position')
+    ax[0, 1].set_ylabel('Probability')
+    ax[0, 1].set_title('Position probability distribution')
+            
+    Distr_beta.append(Beta.Correlation(state)[0][0])
+    ft=Correlation.ft(np.array(Distr_beta))
+
+    ax[1, 0].plot(range(len(ft)), ft, color='red')
+    ax[1, 0].set_xlabel('f')
+    ax[1, 0].set_ylabel(r'$F[\langle \beta^{\dagger}(t)\beta \rangle]$')
+    ax[1, 0].set_title('Correlation')
+            
+    ax[1, 1].plot(range(len(std)), std, color='red')
+    ax[1, 1].set_xlabel('Time')
+    ax[1, 1].set_ylabel(r'$\sigma$')
+    ax[1, 1].set_title('Standard deviation')
+    fig.tight_layout(rect=[0, 0, 1, 0.95], pad=2.0, w_pad=2.0, h_pad=2.0)
+    plt.show()
+"""
     for k in range(time):
         for i in range(2):
             for j in range(2):
                 ax[i, j].cla()
 
         
-        fig.suptitle('QRW', fontsize=16)
+        fig.suptitle(f'QRW: r={r}, v={v}, '+r'$\alpha$='+f'{alpha}, pU={pU}', fontsize=16)
         fig.patch.set_facecolor('lightgrey')
 
         cax = ax[0, 0].imshow(np.real(Distribution), cmap='inferno', aspect='auto', origin='lower')
@@ -123,7 +166,7 @@ if __name__=='__main__':
 
         ax[1, 0].plot(range(len(ft)), ft, color='red')
         ax[1, 0].set_xlabel('Time')
-        ax[1, 0].set_ylabel(r'$F(\langle \beta^{\dagger}(t)\beta \rangle)$')
+        ax[1, 0].set_ylabel(r'$F[\langle \beta^{\dagger}(t)\beta \rangle]$')
         ax[1, 0].set_title('Correlation')
         
         ax[1, 1].plot(range(len(std)), std, color='red')
@@ -141,4 +184,8 @@ if __name__=='__main__':
         bar.remove()
 
     fig.tight_layout(rect=[0, 0, 1, 0.95], pad=2.0, w_pad=2.0, h_pad=5.0)
-    plt.show()
+    plt.show()"""
+
+
+
+    
